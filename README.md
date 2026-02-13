@@ -7,6 +7,11 @@ python3 map.py
 python3 tree.py
 ```
 
+## или через Доке
+```bash
+
+docker-compose up --build
+```
 ## Худшие случаи
 
 ### iterate_through.py

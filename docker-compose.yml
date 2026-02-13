@@ -1,0 +1,5 @@
+services:
+  algo-lab:
+    build: .
+    volumes:
+      - ./charts:/app/charts
