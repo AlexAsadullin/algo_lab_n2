@@ -1,6 +1,9 @@
 import time
+import tracemalloc
+import os
+import plotly.graph_objects as go
 
-K_ITER = 100
+K_ITER = 10
 
 def count_rectangles(rectangles, points):
     total_count = 0
@@ -35,12 +38,27 @@ for i in range(1000):
     points.append((x, y))
 
 print("Прямоугольников:", N, "Точек:", len(points))
+
+tracemalloc.start()
 start = time.time()
 for _ in range(K_ITER-1):
     count_rectangles(rectangles, points)
 total_count = count_rectangles(rectangles, points)
 end = time.time()
-print("Время:", end - start)
+current_mem, peak_mem = tracemalloc.get_traced_memory()
+tracemalloc.stop()
+
+total_time = end - start
+peak_mem_mb = peak_mem / (1024 * 1024)
+print("Время:", total_time)
+print("Пиковая память:", round(peak_mem_mb, 2), "МБ")
+
+fig = go.Figure()
+fig.add_trace(go.Bar(x=["Время (с)"], y=[total_time], name="Время"))
+fig.add_trace(go.Bar(x=["Память (МБ)"], y=[peak_mem_mb], name="Память"))
+fig.update_layout(title="Алгоритм перебора", barmode="group")
+os.makedirs("charts", exist_ok=True)
+fig.write_html("charts/iterate_through.html")
 
 """rectangles = [
     (1, 1, 5, 5),

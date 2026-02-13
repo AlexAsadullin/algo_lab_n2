@@ -1,7 +1,10 @@
 import bisect
 import time
+import tracemalloc
+import os
+import plotly.graph_objects as go
 
-K_ITER = 100
+K_ITER = 10
 
 def prepare_tree(rectangles):
     y_coords = set()
@@ -81,10 +84,12 @@ print("Прямоугольников:", N)
 print("Уникальных x-координат:", 2 * N)
 print("Уникальных y-координат:", 2 * N)
 
+tracemalloc.start()
 start = time.time()
 x_positions, y_sorted, snapshots = prepare_tree(rectangles)
 end = time.time()
-print("Время подготовки:", end - start)
+prep_time = end - start
+print("Время подготовки:", prep_time)
 
 
 start = time.time()
@@ -96,7 +101,21 @@ for x, y in points:
     result = query_tree(x, y, x_positions, y_sorted, snapshots)
     total += result
 end = time.time()
-print("Время запросов:", (end - start) / K_ITER)
+query_time = (end - start) / K_ITER
+current_mem, peak_mem = tracemalloc.get_traced_memory()
+tracemalloc.stop()
+
+total_time = prep_time + query_time
+peak_mem_mb = peak_mem / (1024 * 1024)
+print("Время запросов:", query_time)
+print("Пиковая память:", round(peak_mem_mb, 2), "МБ")
+
+fig = go.Figure()
+fig.add_trace(go.Bar(x=["Время (с)"], y=[total_time], name="Время"))
+fig.add_trace(go.Bar(x=["Память (МБ)"], y=[peak_mem_mb], name="Память"))
+fig.update_layout(title="Алгоритм на дереве", barmode="group")
+os.makedirs("charts", exist_ok=True)
+fig.write_html("charts/tree.html")
 
 
 
