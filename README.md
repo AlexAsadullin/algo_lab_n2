@@ -2,9 +2,7 @@
 
 ```bash
 
-python3 iterate_through.py
-python3 map.py
-python3 tree.py
+python3 main.py
 ```
 
 ## или через Доке

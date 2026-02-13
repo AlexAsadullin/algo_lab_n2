@@ -1,8 +1,6 @@
 import bisect
 import time
 import tracemalloc
-import os
-import plotly.graph_objects as go
 
 K_ITER = 10
 
@@ -59,63 +57,60 @@ def query_tree(x, y, x_positions, y_sorted, snapshots):
     else:
         return 0
 
-N = 10000
-rectangles = []
-for i in range(N):
-    x1 = 10 * i
-    y1 = 10 * i
-    x2 = 10 * (2 * N - i)
-    y2 = 10 * (2 * N - i)
-    rectangles.append((x1, y1, x2, y2))
 
-center_x = 10 * N
-center_y = 10 * N
-radius = 5
+def main():
+    N = 10000
+    rectangles = []
+    for i in range(N):
+        x1 = 10 * i
+        y1 = 10 * i
+        x2 = 10 * (2 * N - i)
+        y2 = 10 * (2 * N - i)
+        rectangles.append((x1, y1, x2, y2))
 
-points = []
-p_x = 999983
-p_y = 1000003
-for i in range(1000):
-    x = center_x + ((p_x * i) ** 31) % (2 * radius) - radius
-    y = center_y + ((p_y * i) ** 31) % (2 * radius) - radius
-    points.append((x, y))
+    center_x = 10 * N
+    center_y = 10 * N
+    radius = 5
 
-print("Прямоугольников:", N)
-print("Уникальных x-координат:", 2 * N)
-print("Уникальных y-координат:", 2 * N)
+    points = []
+    p_x = 999983
+    p_y = 1000003
+    for i in range(1000):
+        x = center_x + ((p_x * i) ** 31) % (2 * radius) - radius
+        y = center_y + ((p_y * i) ** 31) % (2 * radius) - radius
+        points.append((x, y))
 
-tracemalloc.start()
-start = time.time()
-x_positions, y_sorted, snapshots = prepare_tree(rectangles)
-end = time.time()
-prep_time = end - start
-print("Время подготовки:", prep_time)
+    print("Прямоугольников:", N)
+    print("Уникальных x-координат:", 2 * N)
+    print("Уникальных y-координат:", 2 * N)
+
+    tracemalloc.start()
+    start = time.time()
+    x_positions, y_sorted, snapshots = prepare_tree(rectangles)
+    end = time.time()
+    prep_time = end - start
+    print("Время подготовки:", prep_time)
 
 
-start = time.time()
-total = 0
-for _ in range(K_ITER):
+    start = time.time()
+    total = 0
+    for _ in range(K_ITER):
+        for x, y in points:
+            result = query_tree(x, y, x_positions, y_sorted, snapshots)
     for x, y in points:
         result = query_tree(x, y, x_positions, y_sorted, snapshots)
-for x, y in points:
-    result = query_tree(x, y, x_positions, y_sorted, snapshots)
-    total += result
-end = time.time()
-query_time = (end - start) / K_ITER
-current_mem, peak_mem = tracemalloc.get_traced_memory()
-tracemalloc.stop()
+        total += result
+    end = time.time()
+    query_time = (end - start) / K_ITER
+    current_mem, peak_mem = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
 
-total_time = prep_time + query_time
-peak_mem_mb = peak_mem / (1024 * 1024)
-print("Время запросов:", query_time)
-print("Пиковая память:", round(peak_mem_mb, 2), "МБ")
+    total_time = prep_time + query_time
+    peak_mem_mb = peak_mem / (1024 * 1024)
+    print("Время запросов:", query_time)
+    print("Пиковая память:", round(peak_mem_mb, 2), "МБ")
 
-fig = go.Figure()
-fig.add_trace(go.Bar(x=["Время (с)"], y=[total_time], name="Время"))
-fig.add_trace(go.Bar(x=["Память (МБ)"], y=[peak_mem_mb], name="Память"))
-fig.update_layout(title="Алгоритм на дереве", barmode="group")
-os.makedirs("charts", exist_ok=True)
-fig.write_html("charts/tree.html")
+    return total_time, peak_mem_mb
 
 
 

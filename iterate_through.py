@@ -1,7 +1,5 @@
 import time
 import tracemalloc
-import os
-import plotly.graph_objects as go
 
 K_ITER = 10
 
@@ -16,49 +14,46 @@ def count_rectangles(rectangles, points):
         total_count += count
     return total_count
 
-N = 10000
-rectangles = []
-for i in range(N):
-    x1 = 10 * i
-    y1 = 10 * i
-    x2 = 10 * (2 * N - i)
-    y2 = 10 * (2 * N - i)
-    rectangles.append((x1, y1, x2, y2))
 
-center_x = 10 * N
-center_y = 10 * N
-radius = 5
+def main():
+    N = 10000
+    rectangles = []
+    for i in range(N):
+        x1 = 10 * i
+        y1 = 10 * i
+        x2 = 10 * (2 * N - i)
+        y2 = 10 * (2 * N - i)
+        rectangles.append((x1, y1, x2, y2))
 
-points = []
-p_x = 999983
-p_y = 1000003
-for i in range(1000):
-    x = center_x + ((p_x * i) ** 31) % (2 * radius) - radius
-    y = center_y + ((p_y * i) ** 31) % (2 * radius) - radius
-    points.append((x, y))
+    center_x = 10 * N
+    center_y = 10 * N
+    radius = 5
 
-print("Прямоугольников:", N, "Точек:", len(points))
+    points = []
+    p_x = 999983
+    p_y = 1000003
+    for i in range(1000):
+        x = center_x + ((p_x * i) ** 31) % (2 * radius) - radius
+        y = center_y + ((p_y * i) ** 31) % (2 * radius) - radius
+        points.append((x, y))
 
-tracemalloc.start()
-start = time.time()
-for _ in range(K_ITER-1):
-    count_rectangles(rectangles, points)
-total_count = count_rectangles(rectangles, points)
-end = time.time()
-current_mem, peak_mem = tracemalloc.get_traced_memory()
-tracemalloc.stop()
+    print("Прямоугольников:", N, "Точек:", len(points))
 
-total_time = end - start
-peak_mem_mb = peak_mem / (1024 * 1024)
-print("Время:", total_time)
-print("Пиковая память:", round(peak_mem_mb, 2), "МБ")
+    tracemalloc.start()
+    start = time.time()
+    for _ in range(K_ITER-1):
+        count_rectangles(rectangles, points)
+    total_count = count_rectangles(rectangles, points)
+    end = time.time()
+    current_mem, peak_mem = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
 
-fig = go.Figure()
-fig.add_trace(go.Bar(x=["Время (с)"], y=[total_time], name="Время"))
-fig.add_trace(go.Bar(x=["Память (МБ)"], y=[peak_mem_mb], name="Память"))
-fig.update_layout(title="Алгоритм перебора", barmode="group")
-os.makedirs("charts", exist_ok=True)
-fig.write_html("charts/iterate_through.html")
+    total_time = end - start
+    peak_mem_mb = peak_mem / (1024 * 1024)
+    print("Время:", total_time)
+    print("Пиковая память:", round(peak_mem_mb, 2), "МБ")
+
+    return total_time, peak_mem_mb
 
 """rectangles = [
     (1, 1, 5, 5),
